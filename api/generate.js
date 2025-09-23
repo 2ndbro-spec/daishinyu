@@ -1,17 +1,19 @@
 // api/generate.js
 export default async function handler(req, res) {
-  // ---- CORS preflight ----
+  // CORS
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   if (req.method === "OPTIONS") return res.status(200).end();
 
+  if (!process.env.OPENAI_API_KEY) {
+    return res.status(500).json({ error: "Missing OPENAI_API_KEY" }); // ← これで一発判定
+  }
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method Not Allowed" });
   }
 
   try {
-    // VercelのNode関数は body が未パースのことがあるので保険をかける
     const body = typeof req.body === "string" ? JSON.parse(req.body || "{}") : (req.body || {});
     const { prompt } = body;
     if (!prompt) return res.status(400).json({ error: "no prompt" });
