@@ -57,26 +57,26 @@
         </div>
 
         <div class="row">
-          <label for="input" class="small">今日どうした？正直に書け</label>
+          <label for="input" class="small">今日どうした？何があったのか話してみ</label>
           <textarea id="input" placeholder="例）寝坊した。アラーム無視で二度寝…"></textarea>
         </div>
 
         <div class="row btns">
-          <button id="go" class="btn primary">叱れ！</button>
+          <button id="go" class="btn primary">送る</button>
           <button id="clear" class="btn ghost">クリア</button>
           <button id="shot" class="btn share">スクショ</button>
         </div>
 
         <div class="row flex">
           <img id="ava" class="ava" src="/avatars/horii.svg" loading="lazy" alt="avatar">
-          <div id="out" class="bubble">ここに“大親友”の返事が出る。</div>
+          <div id="out" class="bubble">ここに“大親友”の返事がくる</div>
         </div>
 
-        <div class="water">© DAISHINYU – daishinyu.vercel.app</div>
+        <div class="water">© DAISHINYU – by 2ndbros</div>
       </div>
     </div>
 
-    <p class="foot">※出力は短く熱く、最後は前向きに。スクショでXへGO。</p>
+    <p class="foot">※熱く激しく、最後は前向きに。スクショでXへGO。</p>
   </div>
 
   <script>
@@ -96,7 +96,7 @@
     // 叱る
     el('go').addEventListener('click', async ()=>{
       const prompt = input.value.trim();
-      if(!prompt){ out.textContent="まず書け。逃げずに。"; return; }
+      if(!prompt){ out.textContent="まず書け。それからだ"; return; }
 
       // ローディング
       out.innerHTML = '<div class="loader"></div>';
@@ -111,14 +111,14 @@
         out.textContent = data.text || data.error || "……返事がない。もう一度だ。";
       }catch(e){
         console.error(e);
-        out.textContent = "通信エラー：あとでもう一度頼む。";
+        out.textContent = "通信エラー：大親友は寝てるようだ";
       }
     });
 
     // クリア
     el('clear').addEventListener('click', ()=>{
       input.value = '';
-      out.textContent = 'ここに“大親友”の返事が出る。';
+      out.textContent = 'ここに“大親友”の返事がくる。';
     });
 
     // スクショ（1画面収め）
