@@ -70,11 +70,17 @@ $("go").onclick = async ()=> {
   try {
     const res = await fetch(apiEndpoint, {
       method: "POST",
-      headers: {"Content-Type": "application/json"},
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ prompt })
     });
     const data = await res.json();
-    out.textContent = data.text || "返答が返ってこなかった";
+  
+    if (!res.ok) {
+      // ← サーバからのエラーをそのまま見せる
+      out.textContent = `APIエラー(${res.status}): ${data.error || 'unknown'}`;
+      return;
+    }
+    out.textContent = data.text ?? "返答が返ってこなかった";
   } catch (e) {
     out.textContent = "通信エラー。エンドポイントを確認してくれ。";
     console.error(e);
