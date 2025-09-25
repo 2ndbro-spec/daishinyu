@@ -1,100 +1,91 @@
-<!doctype html>
-<html lang="ja">
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1"　/>
-<title>大親友 | The Big Best Friend</title>
-<style>
-  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,'Noto Sans JP',sans-serif;background:#f2f2f2;margin:0;padding:24px;}
-  .app{max-width:420px;margin:0 auto;}
-  h1{font-size:36px;margin:8px 0 2px;font-weight:900;}
-  small{color:#555}
-  select,textarea,button{font-size:16px}
-  select,textarea{width:100%;padding:10px;border:1px solid #bbb;border-radius:6px;background:#fff}
-  textarea{height:110px}
-  .row{display:flex;gap:8px;margin:12px 0}
-  .danger{flex:1;padding:12px;background:#ff4d4f;color:#fff;border:none;border-radius:6px;font-weight:700}
-  .ghost{padding:12px 16px;border:1px solid #ccc;background:#fff;border-radius:6px}
-  #output{min-height:140px;padding:12px;border-radius:8px;border:2px dashed #333;background:#fffefe;white-space:pre-wrap}
-  #share{width:100%;padding:12px;background:#1DA1F2;color:#fff;border:none;border-radius:6px}
-</style>
+import { useState } from "react";
+import html2canvas from "html2canvas";
 
-<div class="app">
-  <h1>大親友</h1>
-  <small>The Big Best Friend</small>
+export default function Home() {
+  const [input, setInput] = useState("");
+  const [output, setOutput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [who, setWho] = useState("horii");
 
-  <div style="margin:14px 0;">
-    <select id="char">
-      <option value="horii">ホリイモン</option>
-      <option value="takeshi">ピートたかし</option>
-      <option value="egashira">江藤2:30</option>
-      <option value="nakata">中田かっちゃん</option>
-      <option value="hikaru">ヒカリ</option>
-    </select>
-  </div>
+  const avaMap = {
+    horii: "/avatars/horii.png",
+    takashi: "/avatars/takashi.png",
+    egashira: "/avatars/egashira.png",
+    kacchan: "/avatars/kacchan.png",
+    hikari: "/avatars/hikari.png",
+  };
 
-  <textarea id="inp" placeholder="今日はどうした？正直に書け。"></textarea>
-
-  <div class="row">
-    <button id="go" class="danger">叱れ</button>
-    <button id="clr" class="ghost">クリア</button>
-  </div>
-
-  <div id="output"></div>
-
-  <div style="margin-top:10px;">
-    <button id="share">Xでシェアする（テンプレ生成）</button>
-  </div>
-</div>
-
-<script>
-const apiEndpoint = "/api/generate"; // 同一ドメインなので相対でOK（https://daishinyu.vercel.app/api/generate）
-
-const charPrompts = {
-  horii: "あなたはホリイモン風の親友だ。強く叱るが、最後は必ず優しく信じる言葉で締める。鋭いが傷つけない表現で。",
-  takeshi: "あなたはピートたかし風の親友だ。下町の兄貴口調で容赦なく叱り、最後は不器用な優しさで締める。",
-  egashira: "あなたは江藤2:30風の親友だ。エネルギッシュに叱り、短い実行案を出し、熱い応援で締める。",
-  nakata: "あなたは中田かっちゃん風の親友だ。論理的に辛口で叱り、最後は人情ある励ましで締める。",
-  hikaru: "あなたはヒカリ風の親友だ。キザで自信満々に叱り、即やる気へ変える締めの言葉で終える。"
-};
-
-const $ = (id)=>document.getElementById(id);
-$("go").onclick = async ()=> {
-  const text = $("inp").value.trim();
-  if (!text) { alert("何か書けよ！"); return; }
-  const who = $("char").value;
-  const prompt = `${charPrompts[who]}\n\nユーザー: ${text}\n\n出力は【叱責】→【指摘/理由】→【認める】→【締め（励まし）】の4パート。250~400字。人格否定や差別的表現は厳禁、愛のある表現で。`;
-
-  const out = $("output");
-  out.textContent = "親友が言葉を探してる…（少し待て）";
-
-  try {
-    const res = await fetch(apiEndpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt })
-    });
-    const data = await res.json();
-  
-    if (!res.ok) {
-      // ← サーバからのエラーをそのまま見せる
-      out.textContent = `APIエラー(${res.status}): ${data.error || 'unknown'}`;
-      return;
+  async function onScold() {
+    setLoading(true);
+    setOutput("");
+    try {
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ who, prompt: input }),
+      });
+      const j = await res.json();
+      setOutput(j.text || j.error || "…黙ってるな。もう一回だ！");
+    } catch (e) {
+      setOutput("エラー: " + e.message);
+    } finally {
+      setLoading(false);
     }
-    out.textContent = data.text ?? "返答が返ってこなかった";
-  } catch (e) {
-    out.textContent = "通信エラー。エンドポイントを確認してくれ。";
-    console.error(e);
   }
-};
 
-$("clr").onclick = ()=> { $("inp").value=""; $("output").textContent=""; };
+  async function shot() {
+    const node = document.getElementById("shot-area");
+    const canvas = await html2canvas(node, {
+      backgroundColor: null,
+      scale: 2,
+    });
+    const url = canvas.toDataURL("image/png");
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "best-friend.png";
+    a.click();
+  }
 
-$("share").onclick = ()=> {
-  const out = $("output").textContent;
-  if (!out) { alert("まずは叱られてこい。"); return; }
-  const who = $("char").selectedOptions[0].text;
-  const text = `今日も${who}にぶっ叱られた。\\n\\n${out}\\n\\n#大親友 #TheBigBestFriend`;
-  navigator.clipboard.writeText(text).then(()=> alert("投稿テキストをコピーした。Xに貼って拡散しろ！"));
-};
-</script>
-</html>
+  return (
+    <div id="app">
+      <h1 className="h1">大親友アプリ</h1>
+      <div id="shot-area" className="card" style={{ padding: 20 }}>
+        <div className="row">
+          <select value={who} onChange={(e) => setWho(e.target.value)}>
+            <option value="horii">ホリイモン</option>
+            <option value="takashi">ピートたかし</option>
+            <option value="egashira">江藤2:30</option>
+            <option value="kacchan">中田かっちゃん</option>
+            <option value="hikari">ヒカリ</option>
+          </select>
+        </div>
+        <div className="row">
+          <textarea
+            rows={2}
+            style={{ width: "100%" }}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="悩みや失敗を書いてみろ"
+          />
+        </div>
+        <div className="row">
+          <button className="btn btn-primary" onClick={onScold}>
+            叱れ！
+          </button>
+          <button className="btn" onClick={() => setInput("")}>
+            クリア
+          </button>
+          <button className="btn" onClick={shot}>
+            スクショ
+          </button>
+        </div>
+        <div className="row flex">
+          <img src={avaMap[who]} className="avatar" alt="ava" />
+          <div className="bubble">
+            {loading ? <div className="loader"></div> : output}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
