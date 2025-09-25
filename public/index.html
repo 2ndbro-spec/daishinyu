@@ -48,11 +48,13 @@
         <div class="row">
           <label for="char" class="small">キャラクター</label>
           <select id="char">
-            <option value="horii">ホリイモン</option>
-            <option value="takashi">ピートたかし</option>
+            <option value="horii">大親友</option>
+            <!-- 
+            <option value="takashi">ピートたかし</option> 
             <option value="egashira">江藤2:30</option>
             <option value="kacchan">中田かっちゃん</option>
-            <option value="hikari">ヒカリ</option>
+            <option value="hikari">ヒカリ</option> 
+            -->
           </select>
         </div>
 
@@ -83,10 +85,10 @@
     // キャラ画像
     const avatarBy = {
       horii:"/avatars/horii.svg",
-      takashi:"/avatars/takashi.svg",
-      egashira:"/avatars/egashira.svg",
-      kacchan:"/avatars/kacchan.svg",
-      hikari:"/avatars/hikari.svg",
+      //takashi:"/avatars/takashi.svg",
+      //egashira:"/avatars/egashira.svg",
+      //kacchan:"/avatars/kacchan.svg",
+      //hikari:"/avatars/hikari.svg",
     };
     const el = (id)=>document.getElementById(id);
     const char = el('char'), input = el('input'), out = el('out'), ava = el('ava');
