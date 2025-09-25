@@ -1,72 +1,51 @@
-export default async function handler(req, res) {
-  // CORS（必要ならドメイン制限を）
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  if (req.method === "OPTIONS") return res.status(200).end();
-
+const handler = async (req, res) => {
   if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method Not Allowed" });
+    return res.status(405).json({ error: "Method not allowed" });
   }
 
-  if (!process.env.OPENAI_API_KEY) {
-    return res.status(500).json({ error: "Missing OPENAI_API_KEY" });
-  }
+  const { prompt } = req.body;
 
   try {
-    const body = typeof req.body === "string" ? JSON.parse(req.body || "{}") : (req.body || {});
-    const { who, prompt } = body;
-    if (!prompt) return res.status(400).json({ error: "no prompt" });
-
-    // 口調プロファイル
-    const personas = {
-      horii:  "短く鋭く。断定口調。最後は熱い一言で背中を押す。",
-      takashi:"毒舌にオチ。江戸っ子調。最後はニヤっとする励まし。",
-      egashira:"勢いと擬音。やかましいが人情。最後は抱擁するような励まし。",
-      kacchan:"論理で詰めて熱量で救う。プレゼン調の比喩もOK。",
-      hikari: "兄貴分のテンポ。タメ口。最後は具体的な一歩を提示。"
-    };
-
-    // スタイル方針
-    const style = `
-あなたはユーザーの大親友。まず「厳しく叱る」→すぐに「救う」。
-人格攻撃・差別・暴力表現は絶対に避ける。
-出力は日本語で2〜4文以内。短く、熱量高め。最後の1文は前向きなエールで締める。
-ラベルや箇条書き、[見出し]は禁止。`;
-
-    // OpenAI呼び出し
-    const resp = await fetch("https://api.openai.com/v1/chat/completions", {
+    const completion = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
-        temperature: 0.9,
-        max_tokens: 180,
+        model: "gpt-4o-mini", // 軽め＆速めモデルでOK
         messages: [
-          { role: "system", content: `${style} 口調指示: ${personas[who] || personas.horii}` },
-          { role: "user", content: prompt }
+          {
+            role: "system",
+            content: `
+あなたは「大親友」というキャラクターだ。
+出力は120〜180文字程度、日本語で。
+雷のように叱りつけたあと、愛情と熱さで勇気づける。
+
+ルール：
+1) 前半：ユーザーの言葉をもとに「〜じゃねえよ！」「〜のせいだろ！」と荒く叱る。激怒級。
+2) 後半：同じ発言を踏まえつつ、やさしく力強く勇気づける。アドラー心理学的に「誰かのせいじゃなく、自分の夢や生き方」に焦点をあてる。
+3) 口調は友達感覚で砕けた熱血。説教臭くしない。
+4) 決めつけは禁止。必ずユーザーの言葉を起点に展開する。
+5) 一人称は常に「大親友」とする。
+6) 最後の一文は必ず「大親友」を含む決め台詞で締める。
+            `
+          },
+          {
+            role: "user",
+            content: prompt
+          }
         ],
+        temperature: 0.9
       }),
     });
 
-    // エラーハンドリング
-    if (!resp.ok) {
-      const errText = await resp.text().catch(()=> "");
-      // 429対策のメッセージ
-      if (resp.status === 429) {
-        return res.status(429).json({ error: "APIエラー(429)：レート/クォータ制限。時間をおいて再試行してくれ。" });
-      }
-      return res.status(resp.status).json({ error: `APIエラー(${resp.status})`, detail: errText });
-    }
-
-    const data = await resp.json();
-    const text = data?.choices?.[0]?.message?.content?.trim() || "";
-    return res.status(200).json({ text });
-  } catch (e) {
-    console.error(e);
-    return res.status(500).json({ error: "サーバーエラー" });
+    const data = await completion.json();
+    res.status(200).json({ text: data.choices[0].message.content });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
   }
-}
+};
+
+export default handler;
