@@ -1,3 +1,5 @@
 {
-  "type": "module"
+  "name": "daishinyu",
+  "version": "1.0.0",
+  "private": true
 }
