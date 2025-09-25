@@ -1,0 +1,7 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+<circle cx="256" cy="256" r="248" fill="#fff" stroke="#111" stroke-width="12"/>
+<path d="M140 210 h232 v60 h-232z" fill="#203a72" stroke="#111" stroke-width="10"/> <!-- 帽子 -->
+<circle cx="206" cy="250" r="10" fill="#111"/><circle cx="306" cy="250" r="10" fill="#111"/>
+<path d="M200 300 q56 24 112 0" stroke="#111" stroke-width="10" fill="none"/>
+<rect x="170" y="320" width="172" height="120" rx="20" fill="#c8b08a" stroke="#111" stroke-width="10"/>
+</svg>
