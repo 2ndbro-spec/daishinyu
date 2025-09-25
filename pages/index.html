@@ -1,57 +1,53 @@
-import { useState } from "react";
-import html2canvas from "html2canvas";
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>大親友 / DAISHINYU v1.0</title>
+  <meta name="description" content="どんな時でも本気で叱って救ってくれる“大親友”アプリ" />
+  <link rel="icon" href="/favicon.ico" />
+  <!-- 1画面スクショ用（CDN） -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
 
-export default function Home() {
-  const [input, setInput] = useState("");
-  const [output, setOutput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [who, setWho] = useState("horii");
-
-  const avaMap = {
-    horii: "/avatars/horii.png",
-    takashi: "/avatars/takashi.png",
-    egashira: "/avatars/egashira.png",
-    kacchan: "/avatars/kacchan.png",
-    hikari: "/avatars/hikari.png",
-  };
-
-  async function onScold() {
-    setLoading(true);
-    setOutput("");
-    try {
-      const res = await fetch("/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ who, prompt: input }),
-      });
-      const j = await res.json();
-      setOutput(j.text || j.error || "…黙ってるな。もう一回だ！");
-    } catch (e) {
-      setOutput("エラー: " + e.message);
-    } finally {
-      setLoading(false);
+  <style>
+    :root{
+      --bg:#f5f6f7; --ink:#111; --ink2:#666; --card:#fff; --accent:#ff5a5f; --line:#222;
     }
-  }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto}
+    #wrap{max-width:480px;margin:24px auto;padding:20px}
+    .h1{font-weight:900;font-size:32px;margin:0 0 6px}
+    .sub{color:var(--ink2);margin:0 0 14px}
+    .card{background:var(--card);border-radius:16px;box-shadow:0 6px 20px rgba(0,0,0,.06)}
+    .section{padding:18px}
+    .row{margin:10px 0}
+    select, textarea{width:100%;font:inherit;border:1px solid #ddd;border-radius:12px;padding:12px}
+    textarea{min-height:120px;resize:vertical}
+    .btns{display:flex;gap:10px;flex-wrap:wrap}
+    .btn{border:0;border-radius:12px;padding:14px 18px;cursor:pointer}
+    .primary{background:var(--accent);color:#fff}
+    .ghost{background:#eee}
+    .share{background:#198ff6;color:#fff}
+    .flex{display:flex; gap:10px; align-items:flex-start}
+    .ava{width:44px;height:44px;border-radius:50%;object-fit:cover;flex:none}
+    .bubble{flex:1; padding:16px; border:2px dashed var(--line); border-radius:14px; background:#fff; min-height:84px; white-space:pre-wrap}
+    .loader{width:22px;height:22px;border-radius:50%;border:3px solid #ddd;border-top-color:#333;animation:spin .8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .foot{margin-top:8px;font-size:12px;color:var(--ink2);text-align:right}
+    .water{font-size:11px;color:#999;margin-top:8px;text-align:right}
+  </style>
+</head>
+<body>
+  <div id="wrap">
+    <h1 class="h1">大親友</h1>
+    <p class="sub">The Big Best Friend – 本気の叱咤→即・救済。</p>
 
-  async function shot() {
-    const node = document.getElementById("shot-area");
-    const canvas = await html2canvas(node, {
-      backgroundColor: null,
-      scale: 2,
-    });
-    const url = canvas.toDataURL("image/png");
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "best-friend.png";
-    a.click();
-  }
-
-  return (
-    <div id="app">
-      <h1 className="h1">大親友アプリ</h1>
-      <div id="shot-area" className="card" style={{ padding: 20 }}>
-        <div className="row">
-          <select value={who} onChange={(e) => setWho(e.target.value)}>
+    <!-- スクショ対象：ここに全UIを収める -->
+    <div id="shot-area" class="card">
+      <div class="section">
+        <div class="row">
+          <label for="char" class="small">キャラクター</label>
+          <select id="char">
             <option value="horii">ホリイモン</option>
             <option value="takashi">ピートたかし</option>
             <option value="egashira">江藤2:30</option>
@@ -59,33 +55,82 @@ export default function Home() {
             <option value="hikari">ヒカリ</option>
           </select>
         </div>
-        <div className="row">
-          <textarea
-            rows={2}
-            style={{ width: "100%" }}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="悩みや失敗を書いてみろ"
-          />
+
+        <div class="row">
+          <label for="input" class="small">今日どうした？正直に書け</label>
+          <textarea id="input" placeholder="例）寝坊した。アラーム無視で二度寝…"></textarea>
         </div>
-        <div className="row">
-          <button className="btn btn-primary" onClick={onScold}>
-            叱れ！
-          </button>
-          <button className="btn" onClick={() => setInput("")}>
-            クリア
-          </button>
-          <button className="btn" onClick={shot}>
-            スクショ
-          </button>
+
+        <div class="row btns">
+          <button id="go" class="btn primary">叱れ！</button>
+          <button id="clear" class="btn ghost">クリア</button>
+          <button id="shot" class="btn share">スクショ</button>
         </div>
-        <div className="row flex">
-          <img src={avaMap[who]} className="avatar" alt="ava" />
-          <div className="bubble">
-            {loading ? <div className="loader"></div> : output}
-          </div>
+
+        <div class="row flex">
+          <img id="ava" class="ava" src="/avatars/horii.png" alt="avatar" />
+          <div id="out" class="bubble">ここに“大親友”の返事が出る。</div>
         </div>
+
+        <div class="water">© DAISHINYU – daishinyu.vercel.app</div>
       </div>
     </div>
-  );
-}
+
+    <p class="foot">※出力は短く熱く、最後は前向きに。スクショでXへGO。</p>
+  </div>
+
+  <script>
+    // キャラ画像
+    const avatarBy = {
+      horii:"/avatars/horii.png",
+      takashi:"/avatars/takashi.png",
+      egashira:"/avatars/egashira.png",
+      kacchan:"/avatars/kacchan.png",
+      hikari:"/avatars/hikari.png",
+    };
+    const el = (id)=>document.getElementById(id);
+    const char = el('char'), input = el('input'), out = el('out'), ava = el('ava');
+
+    char.addEventListener('change', ()=> { ava.src = avatarBy[char.value] || avatarBy.horii; });
+
+    // 叱る
+    el('go').addEventListener('click', async ()=>{
+      const prompt = input.value.trim();
+      if(!prompt){ out.textContent="まず書け。逃げずに。"; return; }
+
+      // ローディング
+      out.innerHTML = '<div class="loader"></div>';
+
+      try{
+        const r = await fetch('/api/generate', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ who: char.value, prompt })
+        });
+        const data = await r.json();
+        out.textContent = data.text || data.error || "……返事がない。もう一度だ。";
+      }catch(e){
+        console.error(e);
+        out.textContent = "通信エラー：あとでもう一度頼む。";
+      }
+    });
+
+    // クリア
+    el('clear').addEventListener('click', ()=>{
+      input.value = '';
+      out.textContent = 'ここに“大親友”の返事が出る。';
+    });
+
+    // スクショ（1画面収め）
+    el('shot').addEventListener('click', async ()=>{
+      const node = el('shot-area');
+      const canvas = await html2canvas(node, { backgroundColor:null, scale:2 });
+      const url = canvas.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'daishinyu.png';
+      a.click();
+    });
+  </script>
+</body>
+</html>
